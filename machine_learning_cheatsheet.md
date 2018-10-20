@@ -88,9 +88,12 @@ $$
 \end{aligned}
 $$
 
+Because $y^TX$ is scalar, which implies $y^TX\theta = (y^TX\theta)^T = \theta^TX^Ty$
+
+$$||X\theta - y||^2_2 = \theta^TX^TX\theta - 2y^TX\theta + y^Ty$$
+
 Differentiate the cost function:
-$$ \frac{\partial}{\partial_{\theta}} f = 2X^TX\theta - y^TX - X^Ty = 0 $$
-Because $y^TX$ is scalar, which implies $y^TX = (y^TX)^T = yX^T$
+$$ \frac{\partial}{\partial_{\theta}} f = 2X^TX\theta - 2y^TX = 0 $$
 $$X^TX\theta = y^TX$$
 $$\theta = (X^TX)^{-1}y^TX$$
 
