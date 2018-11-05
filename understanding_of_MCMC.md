@@ -1,4 +1,4 @@
-This article demonstrates my personal understanding of the **MCMC** techniques and its variations (Metropolis–Hastings, Gibbs sampling)
+This article demonstrates my personal understanding of the **MCMC** algorithms and its variations (Metropolis–Hastings, Gibbs sampling)
 
 Some reference articles that inspire this brief summary are:
 
@@ -29,7 +29,7 @@ $$I_N(f) = \frac{1}{N}\sum_{i=1}^Nf(x^(i)) \rightarrow I(f) = \int_X f(x)p(x)dx$
 
 where $n \to \infty$
 
-But though this sampling is effective and promise convergence, for $p(x)$ that is not gaussian distributed, $N$ can be very large til convergence. So the question remain: is there a sampling method that guarantees more effective convergence over $P(X)$?
+Consider to calculate the area of a circle by sampling randomly across the space, and only count the number of those that fall within the circle. Eventually, you will retrieve sufficient samples to approximate the area of that circle, but this sampling method is very inefficient and for $p(\theta|X)$ that is not gaussian distributed, $N$ can be very large til convergence. So the question remain: is there a sampling method that guarantees more effective convergence over $P(\theta|X)$?
 
 ---
 
@@ -109,9 +109,16 @@ $$
     * The matrix $(I-Q)^{-1}$ is called the **fundamental matrix of the markov chain**. The sum of elements in row $i$ of this matrix is the expected time to absorption when starting at nonabsorbing state $i$.
     * The matrix $B = (I-Q)^{-1}R$ is the long term transition submatrix from nonabsorbing states to absorbing states. Each element $b_{ij}$ represents the probability of long-term absorption into state $j$, when starting in nonabsorbing state $i$
 
+
+---
+
+# MCMC
+
+The general idea of Markov Chain Monte Carlo sampling method is to generate samples from the posterior distribution $p(\theta|X)$ by constructing a reversible Markov-chain (sequence of update to $p(\theta|X)$) that has the target posterior distribution as its equilibrium distribution. 
+
 ## Transition Matrix
 
-Markov Chain provides us with an effective sampling method by **guarantee a more strategic acquisition of the samples** through the transition matrix in the Markov model. In this case, in order to have an ergodic MC model, we need to design a transition matrix $T$ with these properties:
+In order to construct a reversible Markov-chain, it is essential guarantee the convergence of the system by designing an **ergodic** MC model with a transition matrix $T$ following these properties: 
 
 - **Irreducibility**: For any state of the Markov chain, there is a positive probability of visiting all other states. 
 - **Aperiodicity**: The chain should not get trapped in cycles.
@@ -120,24 +127,57 @@ A sufficient, but not necessary, condition to ensure that a particular $p(x)$ is
 
 $$p(x^{(i)})T(x^{i-1}|x^{i}) = p(x^{(i-1)})T(x^{i}|x^{i-1})$$
 
-$$p(x^{(i)}) = \sum_{(x^{(i-1)})}p(x^{(i-1)})T(x^{i}|x^{i-1})$$
+$$p(x^{(i)}) = \sum_{x^{(i-1)}}p(x^{(i-1)})T(x^{i}|x^{i-1})$$
 
-MCMC samplers are irreducible and aperiodic Markov chains that have the target distribution as the invariant distribution. One way to design these samplers is to ensure that detailed balance is satisfied. However, it is also important to design samplers that **converge quickly**.
+in our case:
 
----
+$$p(\theta^{(i)}|X) = \sum_{\theta^{(i-1)}}p(\theta^{(i-1)}|X)T(\theta^{i}|\theta^{i-1}, X)$$
 
-# MCMC (Metropolis-Hastings)
+MCMC samplers are **irreducible and aperiodic** Markov chains that have the target distribution as the invariant distribution. One way to design these samplers is to ensure that detailed balance is satisfied. However, it is also important to design samplers that **converge quickly**. 
 
-The general idea of Markov Chain Monte Carlo sampling method is to keep the sample roaming around the important portion of the distribution (normally a peak in the probabilistic space). However, since we cannot just simply discard the low probability, we use a proposal distribution matrix to simulate this uncertainty.
+Ultimately, by using this sampling method to **update** the posterior $P(\theta|X)$, we can computationally solve the posterior $P(\theta|X)$ without actually compute its denominator $P(X)$
+
+$$
+\frac{P(\theta^{(i)}|X)}{P(\theta^\star|X)} = \frac{P(X|\theta^{(i)})P(\theta^{(i)})}{P(X|\theta^\star)P(\theta^\star)}
+$$ 
+
+This is the core idea behind the techniques related to the modern bayesian inference.
 
 ## Proposal Distribution
 
-The concept of proposal distribution matrix in MCMC is very similar to the transition matrix in Markov chain, and it is up to the design of proposal acceptance matrix that guarantees convergence and effective sampling results. 
+Suppose we have a posterior distribution of $P(\theta|X)$ from some previous observed experience and we are unsure if such $P(\theta|X)$ is good enough, a way to optimize $P(\theta|X)$ is to sample over the existing prior distrbution of $\theta$. This distribution of $\theta$ (current prior $P(\theta)$) is called **the proposal distribution**. Therefore, we have our sampling equation:
+
+$$\theta^\star \approx q(\theta^\star| \theta) = p(\theta)$$
+
+## Acceptance Probability
+
+Reviewing the equation:
+
+$$p(\theta^{(i)}|X) = \sum_{\theta^{(i-1)}}p(\theta^{(i-1)}|X)T(\theta^{i}|\theta^{i-1}, X)$$
+
+We know that through **proposal distribution** and sampling methods, we can compute $\sum_{\theta^{(i-1)}}p(\theta^{(i-1)}|X)$ by summing up all the sample of $\theta$ and its associate probability given $X$. Now we want to explore the transition matrix **T**. In MCMC algorithms, this matrix is in general called **acceptance probability**. The acceptance probability will take a look at the sampling quality and decide whether to update the posterior based on the sampling observations.
+
+Design of the **acceptance probability** follows the two properties: irreducible and aperiodic, which help guarantee algorithmic convergence over $P(\theta|X)$. Different sampling methods will have different **acceptance probability**. For example, **rejection sampling** has the acceptance probability as $u < \frac{p(x^{i})}{Mq(x^{i})}$ where $M$. However, this sampling is inefficient since it simply discard samples that fall under the rejection area without fully utilizing the information. 
+
+![Rejection Sampling Visualization](./supporting_img/rejection_sampling.png)
+
+An easy way to illustrate the similarity between MCMC and Markov Chain Model is to consider **proposal distribution** as the sampling distribution of $\theta^\star$ base on the current state prior $P(\theta_n)$, and the **acceptance probability** as transition matrix that guarantee convergence of $P(\theta|X)$ over the long run.
+
+![MCMC Markov Chain Visualization](./supporting_img/mh_mcmc.png){width=80%}
 
 ## Metropolis-Hastings
 
----
+**Metropolis-Hastings** is one of the most popular MCMC algorithm. Its **acceptance probability** $A$ is:
 
-# Gibbs Sampling
+$$A(\theta^{(i)}, \theta^\star) = \text{min}\{1, \frac{p(\theta^\star|X)}{p(\theta^{(i)}|X)}\}$$
+
+If $p(\theta^\star|X) > p(\theta^{(i)}|X)$, by definition of the acceptance probability, we will update the new proposal distribution as $q(\theta^\star) = q(\theta^\star)$. Otherwise, we will accept the new sample proposal with an $A$ probability. This means if $p(\theta^\star|X) > p(\theta^{(i)}|X)$, the closer the two results are, the likely $q(\theta^\star)$ will be updated with the new sample results.
+
+![Metropolis-Hastings Algorithm](./supporting_img/mh.png)
+
+## Gibbs Sampling
+
+![Gibbs Sampling Algorithm](./supporting_img/gibbs.png)
+
 
 ---

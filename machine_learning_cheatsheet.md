@@ -52,6 +52,19 @@ Definition:
 - False Positive (FP): label is false, prediction is true (incorrect predictions)
 - False Negative (FN): label is true, prediction is false
 
+Balanced Error Rate:
+$$
+\begin{split}
+\text{BER} &= \frac{1}{2}(\text{FPR} + \text{FNR}) \\
+&= \frac{1}{2}(\frac{\text{FP}}{\text{number of Negative labels}} + \frac{\text{FN}}{\text{number of Positive labels}}) \\
+&= \frac{1}{2}(\frac{\text{FP}}{\text{TN} + \text{FP}} + \frac{\text{FN}}{\text{FN} + \text{TP}})
+\end{split}
+$$
+Precision Recall:
+$$\text{Precision} = \frac{\text{TP}}{\text{FP}+\text{TP}} = \frac{\text{TP}}{\text{number of label predicted Positive}}$$
+
+$$\text{Recall} = \frac{\text{TP}}{\text{TP}+\text{FN}} = \frac{\text{TP}}{\text{number of Positive label}}$$
+
 Reference to Binary Classification Performance Cheat Sheet *Figure 1*
 
 ![Link to Binary Classification Performances Measure Cheat Sheet](http://www.damienfrancois.be/blog/files/modelperfcheatsheet.pdf)
@@ -368,9 +381,75 @@ $$A\varphi^T = \lambda\varphi^T$$
 
 ---
 
+# Graph Algorithms
 
+Graph algorithms are often used for data clustering and community detection purposes. The algorithms require not only individual data points (vertices) but their connections to each other (edges). Different from common clustering algorithms (**group set of points based on features**), graph algorithms **group set of points based on their connectivity**.
 
+There are several types of community detection problems:
 
+- **Disjoint** communities (i.e., groups of friends who don’t know each other) e.g. my American friends and my Australian friends
+- **Overlapping** communities (i.e., groups with some intersection) e.g. my friends and my girlfriend’s friends
+- **Nested** communities (i.e., one group within another) e.g. my UCSD friends and my CSE friends
 
+## Minimal Cut
 
+A **minimal cut** splits a network into two partitions such that the number of edges crossed by the cut is minimal. Thus, minimal cut algorithm aims to minimize its cut cost
 
+### Ratio Cut
+
+$$\text{Ratio Cut}(C) = \frac{1}{|C|}\sum_{c\in C}\frac{\text{cut}(c, \bar{c})}{|c|}$$
+
+where the variables are:
+
+- $C$: the proposed sets of communities
+- $|C|$: the number of proposed sets of communities
+- $c$: a single individual set of community
+- $\text{cut}(c, \bar{c})$: \# of edges that separates $c$ from the rest of the network
+
+### Normalized Cut
+
+Rather counting all nodes equally in a community, we should give additional weight to the “influential”, or high-degree nodes.
+
+$$\text{Normalized Cut}(C) = \frac{1}{|C|}\sum_{c\in C}\frac{\text{cut}(c, \bar{c})}{\sum\text{degrees in }c}$$
+
+where the additional variables are:
+
+- $\sum\text{degrees in }c$: summation of # of edges for all vertices in group set $c$
+
+---
+
+## Clique Percolation
+
+Clique percolation is one such algorithm, that discovers communities based on their “cliqueishness”
+
+**The algorithm steps are:**
+
+- Given a clique size $K$
+- Initialize every $K$-clique as its own community
+- While (two communities $I$ and $J$ have a $(K-1)$-clique in common):
+-     Merge $I$ and $J$ into a single community
+
+---
+
+## Network Modularity
+
+Null model: Edges are equally likely between any pair of nodes, regardless of community structure. ("Erdos-Renyi random model") 
+
+For a full modular network, the algorithm tend to choose communities that **minimize** connectivity among different network modules and **maximize** connectivity within individual network module. Thus, the algorithm aims to maximize the function:
+
+$$Q = \sum_{k=1}^k (e_{kk} - a_k ^ 2)$$
+
+where the variables are:
+
+- $e_{kk} = \frac{\text{\# of edges w/ both endpoints in the community}}{\text{\# edges}}$
+- $a_k = \frac{\text{\# of edge endpoints in the community}}{\text{\# edges}}$
+
+The complexity of this algorithm is **NP Hard**, and we can only approximate the solution using greedy algorithm. One algorithmic example shown in homework 4 is to initially split the network into $n$ groups and move one random node at a time from one module to another to maximize the total network modularity.
+
+---
+
+# Recommender Systems
+
+## Similarity Metrics
+
+Jaccard

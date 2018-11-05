@@ -11,7 +11,7 @@ given a coordinate of water wall, calculate the maximum water capacity. Use O(n)
 -----
 -----*****-
 -----------
------------ 
+-----------
 -----------
 '''
 
